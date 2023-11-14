@@ -12,6 +12,22 @@ log_dbeta_primitive <- function(x, shape1, shape2) {
   
   return(log_result)
 }
+dtrue <- function(x) {
+  if (x<0) {
+    output <- 0
+  } 
+  if (x>1) {
+    output <- 0
+  }
+  if (x>=0 & x<=1/2) {
+    output <- 2 - 4*x
+  }
+  if (x>1/2 & x<=1) {
+    output <- -2 + 4*x
+  }
+  return(output)
+}
+dtrue_vec <- Vectorize(dtrue)
 
 save_simulation_data <- function(xx, simulation_result) {
   # Create a filename based on the input value xx
@@ -24,7 +40,7 @@ save_simulation_data <- function(xx, simulation_result) {
   cat("Simulation data saved to:", filename, "\n")
 }
 
-for (tt in 1:20) {
+for (tt in 1:50) {
   RISK_STORE <- matrix(0,8,8)
   
   nn_choice <- 2^(9:16)
@@ -38,7 +54,7 @@ for (tt in 1:20) {
       
       ## Sample from Triangle
       LL <- sample(1:2,nn,replace = TRUE)
-      XX <- (LL==1)*(runif(nn)+runif(nn))/4+(LL==2)*((runif(nn/2)+runif(nn/2))/4+1/2)
+      XX <- (LL==1)*abs((runif(nn)+runif(nn))-1)/2 + (LL==2)*(-abs((runif(nn)+runif(nn))-1)/2+1)
       YY <- runif(nn)
       
       gg <- gg_choice[gg_sel]
@@ -60,19 +76,13 @@ for (tt in 1:20) {
         be_vec <- 1
         pi_vec <- 1
       }
-      all_means <- seq(0.2,0.8,length.out=16)
+      all_means <- seq(0.1,0.9,length.out=16)
       all_means <- all_means[order(abs(all_means-0.5),decreasing = TRUE)]
       if (gg > 1) {
         means <- all_means[1:gg]
-        al_vec <- means*(means*(1-means)/0.02-1)
-        be_vec <- (1-means)*(means*(1-means)/0.02-1)
+        al_vec <- means*(means*(1-means)/0.01-1)
+        be_vec <- (1-means)*(means*(1-means)/0.01-1)
         pi_vec <- rep(1/gg,gg)
-        # al_vec <- c(2,rexp(gg-1,1))
-        # be_vec <- c(2,rexp(gg-1,1))
-        # pi_vec <- c(1/2,rep(1/(gg-1),gg-1)/2)
-        # al_vec <- c(al_vec,rexp(3))
-        # be_vec <- c(be_vec,rexp(3))
-        # pi_vec <- c(pi_vec*1/2,1/2)
       }
       
       
@@ -158,7 +168,7 @@ for (tt in 1:20) {
         return(fitted + 1)
       }
       integrand_X <- function(xx) {
-        log(fitted_loss(xx,al_vec,be_vec,pi_vec))*(dtri(xx,0,0.5,0.25)/2+dtri(xx,0.5,1,0.75)/2)
+        log(fitted_loss(xx,al_vec,be_vec,pi_vec))*(dtrue_vec(xx))
       }
       vec_int_X <- Vectorize(integrand_X)
       integrand_Y <- function(xx) {
