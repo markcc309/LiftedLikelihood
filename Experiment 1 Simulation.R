@@ -24,7 +24,7 @@ save_simulation_data <- function(xx, simulation_result) {
   cat("Simulation data saved to:", filename, "\n")
 }
 
-for (tt in 1:20) {
+for (tt in 21:50) {
   RISK_STORE <- matrix(0,8,8)
   
   nn_choice <- 2^(9:15)
@@ -37,8 +37,8 @@ for (tt in 1:20) {
     for (gg_sel in 1:8)  {
       
       ## Sample from Triangle
-      LL <- sample(1:3,nn,replace = TRUE)
-      XX <- (LL==1)*runif(nn,0,0.2)+(LL==2)*runif(nn,0.3,0.7) + (LL==3)*runif(nn,0.8,1)
+      LL <- sample(1:2,nn,replace = TRUE)
+      XX <- (LL==1)*runif(nn,0,0.4) + (LL==2)*runif(nn,0.6,1)
       YY <- rbeta(nn,0.5,0.5) 
       
       gg <- gg_choice[gg_sel]
@@ -66,7 +66,7 @@ for (tt in 1:20) {
         means <- all_means[1:gg]
         al_vec <- means*(means*(1-means)/0.01-1)
         be_vec <- (1-means)*(means*(1-means)/0.01-1)
-        pi_vec <- rep(1/gg,gg)
+        pi_vec <- c(rep(0.999/(gg-1),gg-1),0.001)
         # al_vec <- c(2,rexp(gg-1,1))
         # be_vec <- c(2,rexp(gg-1,1))
         # pi_vec <- c(1/2,rep(1/(gg-1),gg-1)/2)
@@ -158,7 +158,7 @@ for (tt in 1:20) {
         return(fitted + dbeta(xx,0.5,0.5))
       }
       integrand_X <- function(xx) {
-        log(fitted_loss(xx,al_vec,be_vec,pi_vec))*(dunif(xx,0,0.2)+dunif(xx,0.3,0.7) + dunif(xx,0.8,1))/3
+        log(fitted_loss(xx,al_vec,be_vec,pi_vec))*(dunif(xx,0,0.4)+dunif(xx,0.6,1))/2
       }
       vec_int_X <- Vectorize(integrand_X)
       integrand_Y <- function(xx) {
